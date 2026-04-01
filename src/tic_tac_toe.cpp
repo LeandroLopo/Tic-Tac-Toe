@@ -2,6 +2,7 @@
 #include <random>
 #include <thread>
 #include <array>
+#include <mutex>
 
 // Classe TicTacToe
 class TicTacToe {
@@ -10,6 +11,7 @@ class TicTacToe {
   char current_player; // Jogador atual ('X' ou 'O')
   bool game_over; // Estado do jogo
   char winner; // Vencedor do jogo
+  std::mutex m; // Mutex para a região crítica
   
   public:
   TicTacToe() {
@@ -41,6 +43,7 @@ class TicTacToe {
   
   bool make_move(char player, int row, int col) {
     // Implementar a lógica para realizar uma jogada no tabuleiro
+    m.lock();
     if(!game_over){
       if(board[row][col] != 'X' && board[row][col] != 'O'){
         board[row][col] = player;
@@ -51,11 +54,14 @@ class TicTacToe {
         }else{
           current_player = 'O';
         }
+        m.unlock();
         return 1;
       }else{
+        m.unlock();
         return 0;
       }
     }else{
+      m.unlock();
       return 1;
     }
   }
@@ -115,7 +121,10 @@ class TicTacToe {
   
   char get_winner() {
     // Retornar o vencedor do jogo ('X', 'O', ou 'D' para empate)
-    return winner;
+    m.lock();
+    char resultado = winner;
+    m.unlock();
+    return resultado;
   }
 };
 
